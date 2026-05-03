@@ -1,3 +1,195 @@
+# CareAccess – Project Description
+
+## 🧠 About the Project
+
+CareAccess is a **role-based healthcare management system** designed to manage patients, medical data, and user access in a secure and structured way.
+
+The system is built around a **hierarchical access model**, where different types of users interact with the platform based on their roles and permissions.
+
+---
+
+## 👥 User Roles & Access
+
+### 🔑 Super Admin
+
+* Has **full control over the entire system**
+* Can:
+
+  * Manage all organizations (if multi-tenant)
+  * View and access all patient records
+  * Create, update, and delete users
+  * Define roles and permissions
+  * Monitor system activity (audit logs)
+
+---
+
+### 🛠️ Admin
+
+* Manages operations within a specific organization or unit
+* Can:
+
+  * Create and manage users (Doctors, Nurses, Staff)
+  * Assign roles and permissions
+  * Control access to modules
+  * View reports and operational data
+
+---
+
+### 👨‍⚕️ Doctor
+
+* Handles patient-related activities
+* Can:
+
+  * Add and manage patient records
+  * Access assigned patients only
+  * Create and update **EHR (Electronic Health Records)**
+  * Add prescriptions and treatment notes
+  * Review medical reports
+
+---
+
+### 👩‍⚕️ Nurse / Staff
+
+* Limited access role
+* Can:
+
+  * View patient details
+  * Assist in updating basic records
+  * Access assigned modules only
+
+---
+
+### 🧪 Lab Technician
+
+* Focused on diagnostics
+* Can:
+
+  * Upload lab reports
+  * Update test results
+  * Access only relevant patient data
+
+---
+
+## 🏥 Core Functionalities
+
+### 👤 User & Role Management
+
+* Admins can:
+
+  * Create users
+  * Assign roles
+  * Define custom permissions
+* Supports **fine-grained access control**
+
+---
+
+### 🧑‍🤝‍🧑 Patient Management
+
+* Add new patients
+* Maintain patient profiles:
+
+  * Personal details
+  * Medical history
+  * Assigned doctor
+
+---
+
+### 📄 Electronic Health Records (EHR)
+
+* Store:
+
+  * Diagnoses
+  * Treatment plans
+  * Clinical notes
+* Maintain complete patient history
+
+---
+
+### 💊 Prescription Management
+
+* Doctors can:
+
+  * Create prescriptions
+  * Track medications
+  * Update treatment progress
+
+---
+
+### 🧾 Medical Reports
+
+* Upload lab results and reports
+* Restrict access based on role
+* Mark reports as finalized
+
+---
+
+### 🔐 Access Control
+
+* Role-based + permission-based system
+* Ensure users only access:
+
+  * Allowed modules
+  * Authorized patient data
+
+---
+
+### 📊 Audit & Activity Logs
+
+* Track:
+
+  * User actions
+  * Data access
+  * Record modifications
+* Useful for compliance and debugging
+
+---
+
+## 🌍 Real-World Features
+
+* **Multi-Organization Support**
+
+  * Different hospitals/clinics under one system
+
+* **Doctor–Patient Assignment**
+
+  * Doctors can only view their assigned patients
+
+* **Module-Based Access**
+
+  * Enable/disable features per role
+
+* **Search & Filtering**
+
+  * Quickly find patients, reports, users
+
+* **Data Privacy Controls**
+
+  * Sensitive data visibility restrictions
+
+* **Soft Delete & Recovery**
+
+  * Prevent permanent data loss
+
+* **Notifications (Optional)**
+
+  * Alerts for:
+
+    * New reports
+    * Patient updates
+    * Role changes
+
+---
+
+## 🎯 Goal
+
+The goal of CareAccess is to simulate a **real-world healthcare system** that:
+
+* Manages sensitive medical data securely
+* Supports multiple user roles with controlled access
+* Provides a scalable and maintainable architecture
+* Reflects real enterprise-level application behavior
+
+
 # CareAccess – Frontend (UI) Architecture Prompt
 
 ## 🧠 Overview
@@ -412,3 +604,42 @@ Create a **clean, professional, and scalable healthcare UI system** that:
 * Is easy to extend
 * Maintains visual consistency across all modules
 
+## AUTH API
+
+### 🔑 Authentication API
+| Method | Endpoint | Description | Request Body (JSON) |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/Auth/login` | Authenticate user and get token | `{ "email": "...", "password": "..." }` |
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "token": "...",
+  "name": "...",
+  "role": "..."
+}
+```
+
+---
+
+👥 Users API
+Method	Endpoint	Description	Request Body (JSON)
+GET	/api/Users	Get all users	None
+POST	/api/Users	Create a new user	{ "name": "string", "email": "string", "roleId": "GUID" }
+POST	/api/Users/assign-role	Assign a role to a user	{ "userId": "GUID", "roleId": "GUID" }
+🧑‍🤝‍🧑 Patients API
+Method	Endpoint	Description	Request Body (JSON)
+GET	/api/Patients	Get all patients	None
+GET	/api/Patients/{id}	Get patient details by ID	None
+POST	/api/Patients	Create a new patient	{ "name": "string", "doctorId": "GUID" }
+POST	/api/Patients/{id}/assign-doctor	Assign a doctor to a patient	"GUID" (Plain string in body)
+📄 Medical Reports API
+Method	Endpoint	Description	Request Body (JSON)
+GET	/api/Reports	Get all reports	None
+POST	/api/Reports	Upload a new report	{ "patientId": "GUID", "createdBy": "GUID" }
+POST	/api/Reports/{id}/finalize	Mark a report as finalized	None
+💡 Tips for UI Integration:
+Base URL: https://localhost:7005/api
+Content-Type: Ensure you send Content-Type: application/json for all POST requests.
+GUIDs: Most IDs (User, Patient, Role, Report) are expected in standard GUID format (e.g., 3fa85f64-5717-4562-b3fc-2c963f66afa6).
