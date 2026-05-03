@@ -5,11 +5,12 @@ import { Card } from '@/shared/ui/Card';
 import { AuthGuard } from '@/shared/auth/AuthGuard';
 import { Users, Shield, Mail, MoreHorizontal, Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
-import { userService, User } from '@/features/users/services/userService';
+import { userService, User, Role } from '@/features/users/services/userService';
 import { CreateUserModal } from '@/features/users/components/CreateUserModal';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -25,14 +26,25 @@ export default function UsersPage() {
     }
   };
 
+  const fetchRoles = async () => {
+    try {
+      const data = await userService.getRoles();
+      setRoles(data);
+    } catch (err) {
+      console.error('Failed to fetch roles', err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchRoles();
   }, []);
 
   return (
     <AuthGuard permission="MANAGE_USERS">
       <div className="space-y-8">
         <div className="flex justify-between items-end">
+          {/* ... */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
             <p className="text-gray-500">Manage system users, roles, and permissions across the organization.</p>
@@ -88,15 +100,12 @@ export default function UsersPage() {
                         <Shield className="w-4 h-4 text-accent" />
                         <select 
                           className="text-sm text-gray-700 font-medium bg-transparent border-none focus:ring-0 cursor-pointer"
-                          value={user.role}
+                          value={roles.find(r => r.name === user.role)?.id || ''}
                           onChange={async (e) => {
-                            const newRoleName = e.target.value;
-                            // Find role ID (mocking GUIDs based on names for this demo)
-                            const roleMap: any = { 'Admin': '1', 'Doctor': '2', 'Nurse': '3', 'Lab Technician': '4' };
-                            const roleId = roleMap[newRoleName];
-                            if (roleId) {
+                            const newRoleId = e.target.value;
+                            if (newRoleId) {
                               try {
-                                await userService.assignRole(user.id, roleId);
+                                await userService.assignRole(user.id, newRoleId);
                                 fetchUsers();
                               } catch (err) {
                                 console.error('Failed to assign role', err);
@@ -104,10 +113,10 @@ export default function UsersPage() {
                             }
                           }}
                         >
-                          <option>Admin</option>
-                          <option>Doctor</option>
-                          <option>Nurse</option>
-                          <option>Lab Technician</option>
+                          <option value="" disabled>Select Role</option>
+                          {roles.map(role => (
+                            <option key={role.id} value={role.id}>{role.name}</option>
+                          ))}
                         </select>
                       </div>
                     </td>

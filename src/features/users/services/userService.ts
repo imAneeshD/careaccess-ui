@@ -8,6 +8,11 @@ export interface User {
   status: string;
 }
 
+export interface Role {
+  id: string;
+  name: string;
+}
+
 export const userService = {
   getUsers: async (): Promise<User[]> => {
     const query = `
@@ -22,6 +27,19 @@ export const userService = {
     `;
     const result = await graphqlRequest(query);
     return result.data?.users || [];
+  },
+
+  getRoles: async (): Promise<Role[]> => {
+    const query = `
+      query {
+        roles {
+          id
+          name
+        }
+      }
+    `;
+    const result = await graphqlRequest(query);
+    return result.data?.roles || [];
   },
   
   createUser: async (data: any) => {

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
-import { userService } from '../services/userService';
+import { userService, Role } from '../services/userService';
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -16,18 +16,23 @@ export const CreateUserModal = ({ isOpen, onClose, onSuccess }: CreateUserModalP
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [roleId, setRoleId] = useState('');
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // roles would typically come from an API, but for simplicity we can hardcode
-  // or fetch from a hypothetical roles service. 
-  // Based on the DB initializer in the backend, these are typical GUIDs.
-  const roles = [
-    { id: '1', name: 'Admin' },
-    { id: '2', name: 'Doctor' },
-    { id: '3', name: 'Nurse' },
-    { id: '4', name: 'Lab Technician' }
-  ];
+  useEffect(() => {
+    if (isOpen) {
+      const fetchRoles = async () => {
+        try {
+          const data = await userService.getRoles();
+          setRoles(data);
+        } catch (err) {
+          console.error('Failed to fetch roles', err);
+        }
+      };
+      fetchRoles();
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +47,7 @@ export const CreateUserModal = ({ isOpen, onClose, onSuccess }: CreateUserModalP
       setEmail('');
       setRoleId('');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create user');
+      setError(err.response?.data?.message || 'Failed to create user. Please ensure you are sending a valid GUID.');
     } finally {
       setIsLoading(false);
     }
