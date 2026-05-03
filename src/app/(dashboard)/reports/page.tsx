@@ -6,23 +6,26 @@ import { AuthGuard } from '@/shared/auth/AuthGuard';
 import { FileText, Download, Eye, Plus, Filter } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { reportService, Report } from '@/features/reports/services/reportService';
+import { UploadReportModal } from '@/features/reports/components/UploadReportModal';
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchReports = async () => {
+    setIsLoading(true);
+    try {
+      const data = await reportService.getReports();
+      setReports(data);
+    } catch (err) {
+      console.error('Failed to fetch reports', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const data = await reportService.getReports();
-        setReports(data);
-      } catch (err) {
-        console.error('Failed to fetch reports', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchReports();
   }, []);
 
@@ -34,11 +37,17 @@ export default function ReportsPage() {
             <h1 className="text-2xl font-bold text-gray-900">Medical Reports</h1>
             <p className="text-gray-500">Access and manage medical diagnostic reports and lab results.</p>
           </div>
-          <Button>
+          <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Upload Report
           </Button>
         </div>
+
+        <UploadReportModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSuccess={fetchReports}
+        />
 
         <div className="flex gap-4">
           <div className="relative flex-1">
@@ -88,7 +97,7 @@ export default function ReportsPage() {
                   <span>{new Date(report.date).toLocaleDateString()}</span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 mb-3">
                   <Button variant="secondary" className="text-xs py-2">
                     <Eye className="w-3 h-3 mr-2" />
                     View
@@ -98,6 +107,23 @@ export default function ReportsPage() {
                     Download
                   </Button>
                 </div>
+                
+                {report.status !== 'Finalized' && (
+                  <Button 
+                    variant="accent" 
+                    className="w-full text-xs py-2"
+                    onClick={async () => {
+                      try {
+                        await reportService.finalizeReport(report.id);
+                        fetchReports();
+                      } catch (err) {
+                        console.error('Failed to finalize report', err);
+                      }
+                    }}
+                  >
+                    Finalize Report
+                  </Button>
+                )}
               </Card>
             ))
           ) : (

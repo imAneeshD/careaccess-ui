@@ -1,4 +1,4 @@
-import api, { graphqlRequest } from '@/shared/lib/api';
+import { graphqlRequest } from '@/shared/lib/api';
 import { jwtDecode } from 'jwt-decode';
 import { Role, Permission } from '@/shared/auth/AuthContext';
 
@@ -18,7 +18,7 @@ export const authService = {
     const result = await graphqlRequest(mutation, { input: { email, password } });
     
     if (!result.data?.login?.success) {
-      throw new Error('Login failed');
+      throw new Error('Login failed. Please check your credentials.');
     }
 
     const { token, name, role } = result.data.login;
@@ -29,7 +29,6 @@ export const authService = {
     const userEmail = decoded.email || email;
     
     // Map backend role to our Role type
-    // Backend roles: "Super Admin", "Admin", "Doctor", etc.
     const userRole = role as Role;
     
     // Define permissions based on role

@@ -1,4 +1,4 @@
-import api, { graphqlRequest } from '@/shared/lib/api';
+import { graphqlRequest } from '@/shared/lib/api';
 
 export interface User {
   id: string;
@@ -40,7 +40,9 @@ export const userService = {
         assignRole(input: $input)
       }
     `;
-    const result = await graphqlRequest(mutation, { input: { userId, roleId } });
+    const result = await graphqlRequest(mutation, { 
+      input: { userId, roleId } 
+    });
     return result.data?.assignRole;
   }
 };

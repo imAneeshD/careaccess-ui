@@ -1,4 +1,4 @@
-import api, { graphqlRequest } from '@/shared/lib/api';
+import { graphqlRequest } from '@/shared/lib/api';
 
 export interface Report {
   id: string;
@@ -15,13 +15,19 @@ export const reportService = {
       query {
         reports {
           id
-          patientId
-          status
+          name
+          patientName
+          isFinalized
         }
       }
     `;
     const result = await graphqlRequest(query);
-    return result.data?.reports || [];
+    // Map isFinalized to status string for UI consistency
+    return (result.data?.reports || []).map((r: any) => ({
+      ...r,
+      status: r.isFinalized ? 'Finalized' : 'Pending',
+      date: new Date().toISOString() // Backend might not provide date in DTO yet
+    }));
   },
   
   uploadReport: async (data: any) => {

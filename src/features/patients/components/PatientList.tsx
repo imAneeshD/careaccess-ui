@@ -2,28 +2,43 @@
 
 import React, { useEffect, useState } from 'react';
 import { patientService, Patient } from '../services/patientService';
+import { userService } from '@/features/users/services/userService';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Search, Filter, MoreVertical, Plus } from 'lucide-react';
+import { CreatePatientModal } from './CreatePatientModal';
 
 export const PatientList = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [doctors, setDoctors] = useState<any[]>([]);
+
+  const fetchPatients = async () => {
+    setIsLoading(true);
+    try {
+      const data = await patientService.getPatients();
+      setPatients(data);
+    } catch (err) {
+      console.error('Failed to fetch patients', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchDoctors = async () => {
+    try {
+      const users = await userService.getUsers();
+      setDoctors(users.filter(u => u.role === 'Doctor'));
+    } catch (err) {
+      console.error('Failed to fetch doctors', err);
+    }
+  };
 
   useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const data = await patientService.getPatients();
-        setPatients(data);
-      } catch (err) {
-        console.error('Failed to fetch patients', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchPatients();
+    fetchDoctors();
   }, []);
 
   const filteredPatients = patients.filter(p => 
@@ -49,12 +64,21 @@ export const PatientList = () => {
             <Filter className="w-4 h-4 mr-2" />
             Filters
           </Button>
-          <Button className="flex-1 sm:flex-none">
+          <Button 
+            className="flex-1 sm:flex-none"
+            onClick={() => setIsModalOpen(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Patient
           </Button>
         </div>
       </div>
+
+      <CreatePatientModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={fetchPatients}
+      />
 
       <Card className="ring-1 ring-secondary/50 border-none shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -101,7 +125,26 @@ export const PatientList = () => {
                       </code>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {patient.assignedDoctor || 'Unassigned'}
+                      <select 
+                        className="bg-transparent border-none focus:ring-0 cursor-pointer"
+                        value={patient.assignedDoctorId || ''}
+                        onChange={async (e) => {
+                          const doctorId = e.target.value;
+                          if (doctorId) {
+                            try {
+                              await patientService.assignDoctor(patient.id, doctorId);
+                              fetchPatients();
+                            } catch (err) {
+                              console.error('Failed to assign doctor', err);
+                            }
+                          }
+                        }}
+                      >
+                        <option value="">Unassigned</option>
+                        {doctors.map(doctor => (
+                          <option key={doctor.id} value={doctor.id}>{doctor.name}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${

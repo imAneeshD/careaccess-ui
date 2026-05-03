@@ -604,7 +604,83 @@ Create a **clean, professional, and scalable healthcare UI system** that:
 * Is easy to extend
 * Maintains visual consistency across all modules
 
-## AUTH API
+## ✅ Verified GraphQL API Reference
+
+The backend implements a GraphQL API at `/graphql`. The following queries and mutations are available:
+
+### 🔑 Authentication (Mutation)
+```graphql
+mutation($input: LoginRequestInput!) {
+  login(input: $input) {
+    success
+    token
+    name
+    role
+  }
+}
+```
+
+### 🧑‍🤝‍🧑 Patients
+**Query:**
+```graphql
+query {
+  patients {
+    id
+    name
+    status
+    lastVisit
+  }
+}
+```
+**Mutation (Create):**
+```graphql
+mutation($input: CreatePatientCommandInput!) {
+  createPatient(input: $input)
+}
+```
+
+### 👥 Users
+**Query:**
+```graphql
+query {
+  users {
+    id
+    name
+    email
+    role
+  }
+}
+```
+**Mutation (Create):**
+```graphql
+mutation($input: CreateUserCommandInput!) {
+  createUser(input: $input)
+}
+```
+
+### 📄 Reports
+**Query:**
+```graphql
+query {
+  reports {
+    id
+    name
+    patientName
+    isFinalized
+  }
+}
+```
+**Mutation (Finalize):**
+```graphql
+mutation($id: UUID!) {
+  finalizeReport(id: $id)
+}
+```
+
+💡 Tips for UI Integration:
+Base URL: https://localhost:7005/graphql
+Content-Type: Ensure you send Content-Type: application/json for all requests.
+GUIDs/UUIDs: Most IDs (User, Patient, Role, Report) are expected in standard GUID format.
 
 ### 🔑 Authentication API
 | Method | Endpoint | Description | Request Body (JSON) |

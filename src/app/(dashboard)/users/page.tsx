@@ -6,23 +6,26 @@ import { AuthGuard } from '@/shared/auth/AuthGuard';
 import { Users, Shield, Mail, MoreHorizontal, Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { userService, User } from '@/features/users/services/userService';
+import { CreateUserModal } from '@/features/users/components/CreateUserModal';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const data = await userService.getUsers();
+      setUsers(data);
+    } catch (err) {
+      console.error('Failed to fetch users', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const data = await userService.getUsers();
-        setUsers(data);
-      } catch (err) {
-        console.error('Failed to fetch users', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchUsers();
   }, []);
 
@@ -34,11 +37,17 @@ export default function UsersPage() {
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
             <p className="text-gray-500">Manage system users, roles, and permissions across the organization.</p>
           </div>
-          <Button>
+          <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Create User
           </Button>
         </div>
+
+        <CreateUserModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSuccess={fetchUsers}
+        />
 
         <Card className="ring-1 ring-secondary/50 border-none shadow-sm overflow-hidden">
           <table className="w-full text-left">
@@ -77,7 +86,29 @@ export default function UsersPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <Shield className="w-4 h-4 text-accent" />
-                        <span className="text-sm text-gray-700 font-medium">{user.role}</span>
+                        <select 
+                          className="text-sm text-gray-700 font-medium bg-transparent border-none focus:ring-0 cursor-pointer"
+                          value={user.role}
+                          onChange={async (e) => {
+                            const newRoleName = e.target.value;
+                            // Find role ID (mocking GUIDs based on names for this demo)
+                            const roleMap: any = { 'Admin': '1', 'Doctor': '2', 'Nurse': '3', 'Lab Technician': '4' };
+                            const roleId = roleMap[newRoleName];
+                            if (roleId) {
+                              try {
+                                await userService.assignRole(user.id, roleId);
+                                fetchUsers();
+                              } catch (err) {
+                                console.error('Failed to assign role', err);
+                              }
+                            }
+                          }}
+                        >
+                          <option>Admin</option>
+                          <option>Doctor</option>
+                          <option>Nurse</option>
+                          <option>Lab Technician</option>
+                        </select>
                       </div>
                     </td>
                     <td className="px-6 py-4">
